@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.model.Cart;
@@ -17,40 +18,29 @@ import com.service.CustomerService;
 @Controller
 public class CartController {
 
-	@Autowired
-	private CustomerService customerService;
-	
-	@Autowired
-	private CartService cartService;
+    @Autowired
+    private CustomerService customerService;
 
-	public CustomerService getCustomerService() {
-		return customerService;
-	}
+    @Autowired
+    private CartService cartService;
 
-	public void setCustomerService(CustomerService customerService) {
-		this.customerService = customerService;
-	}
+    @RequestMapping(value = "/cart/getCartById", method = RequestMethod.GET)
+    public String getCartId(Model model) {
+        User user = (User) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
 
-	public CartService getCartService() {
-		return cartService;
-	}
+        String emailId = user.getUsername();
+        Customer customer = customerService.getCustomerByemailId(emailId);
 
-	public void setCartService(CartService cartService) {
-		this.cartService = cartService;
-	}
-	
-	@GetMapping("cart/getCartById")
-	public String getCartId(Model model){
-		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		String emailId = user.getUsername();
-		Customer customer = customerService.getCustomerByemailId(emailId);
-		model.addAttribute("cartId", customer.getCart().getCartId());
-		return "cart";
-	}
-	
-	@GetMapping("/cart/getCart/{cartId}")
-	public @ResponseBody Cart getCartItems(@PathVariable("cartId") String cartId){
-		return cartService.getCartByCartId(cartId);
-	}
-	
+        model.addAttribute("cartId", customer.getCart().getCartId());
+        return "cart";
+    }
+
+    @RequestMapping(value = "/cart/getCart/{cartId}", method = RequestMethod.GET)
+    public @ResponseBody Cart getCartItems(@PathVariable("cartId") String cartId) {
+        return cartService.getCartByCartId(cartId);
+    }
 }
+
